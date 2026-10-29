@@ -2,7 +2,7 @@ import os
 
 
 def move_file(command: str) -> None:
-    split_command: list[str] = command.strip().split(" ")
+    split_command: list[str] = command.strip().split()
 
     if (
         len(split_command) != 3
@@ -12,11 +12,10 @@ def move_file(command: str) -> None:
     ):
         return
 
-    source_file_name: str = split_command[1]
-    destination_file_name: str = split_command[2]
+    _, source_file_name, destination_file_name = split_command
 
     if destination_file_name.endswith(("/", "\\")):
-        os.makedirs(destination_file_name, exist_ok=True)
+        make_dirs(destination_file_name)
         destination_file_name = os.path.join(
             destination_file_name,
             os.path.basename(source_file_name)
@@ -25,7 +24,7 @@ def move_file(command: str) -> None:
         dir_path = os.path.dirname(destination_file_name)
 
         if dir_path:
-            os.makedirs(dir_path, exist_ok=True)
+            make_dirs(dir_path)
 
     try:
         with (
@@ -39,3 +38,22 @@ def move_file(command: str) -> None:
 
     else:
         os.remove(source_file_name)
+
+
+def make_dirs(path: str) -> None:
+    path = path.replace("\\", os.sep).replace("/", os.sep)
+    path = os.path.normpath(path)
+
+    current_path = ""
+
+    for part in path.split(os.sep):
+        if not part:
+            continue
+
+        current_path = os.path.join(current_path, part)
+
+        try:
+            os.mkdir(current_path)
+        except FileExistsError:
+            if not os.path.isdir(current_path):
+                raise
